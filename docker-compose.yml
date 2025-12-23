@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:15
+    container_name: erp_postgres
+    environment:
+      POSTGRES_USER: postgres_root
+      POSTGRES_PASSWORD: 123123
+      POSTGRES_DB: erp
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    networks:
+      - erp_network
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: erp_backend
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_DATABASE: ${POSTGRES_DATABASE}
+      POSTGRES_URI: ${POSTGRES_URI}
+    ports:
+      - "8008:8008"
+    networks:
+      - erp_network
+    depends_on:
+      - db
+
+networks:
+  erp_network:
+    driver: bridge
+
+volumes:
+  postgres_data:

@@ -3,26 +3,39 @@ from typing import List
 
 
 class TopEmployeeResponse(BaseModel):
-    """Схема ответа для топ сотрудника"""
+    """Данные по лучшему сотруднику"""
     id: str
     name: str
     lastname: str
     patronymic: str | None
-    totalRevenue: float  # Общая выручка
-    totalSales: int  # Товаров продано
+    role: str
+    total_revenue: float
+    products_sold: int
+
+    class Config:
+        from_attributes = True
 
 
 class TopProductResponse(BaseModel):
-    """Схема ответа для топ товара"""
+    """Данные по самому продаваемому товару"""
     id: str
     name: str
     size: int
-    colorId: str
-    colorName: str
-    categoryId: str
-    categoryName: str
     price: float
     season: str
-    availableCount: int
-    totalSold: int  # Количество проданных
+    colorId: str
+    categoryId: str
+    color: dict
+    category: dict
+    total_sold: int
+    rest_count: int
+
+    class Config:
+        from_attributes = True
+
+
+class ReportsResponse(BaseModel):
+    """Общий ответ с отчетами"""
+    top_employees: List[TopEmployeeResponse]
+    top_products: List[TopProductResponse]
 

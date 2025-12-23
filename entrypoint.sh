@@ -43,6 +43,7 @@ cd /app
 alembic upgrade head
 
 echo "Seeding admin user..."
+python -m clear_all_data
 python -m seed_admin
 
 echo "Starting FastAPI application..."

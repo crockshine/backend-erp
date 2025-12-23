@@ -5,6 +5,7 @@ from src.auth.routes import router as auth_router
 from src.product.routes import router as product_router
 from src.supplier.routes import router as supplier_router
 from src.discount.routes import router as discount_router
+from src.reports.routes import router as reports_router
 from src.config import settings
 
 
@@ -43,6 +44,7 @@ app.include_router(auth_router, prefix="/auth", tags=["Auth"])
 app.include_router(product_router, prefix="/products", tags=["Products"])
 app.include_router(supplier_router, tags=["Suppliers"])  # Prefix уже установлен в routes.py
 app.include_router(discount_router, tags=["Discounts"])  # Prefix уже установлен в routes.py
+app.include_router(reports_router, tags=["Reports"])  # Prefix уже установлен в routes.py
 
 
 @app.get("/", tags=["Root"])

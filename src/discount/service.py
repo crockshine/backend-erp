@@ -47,9 +47,9 @@ async def create_discount(db: AsyncSession, discount_data: DiscountCreate) -> Di
 
     # Связываем размеры
     if discount_data.sizes:
-        for size in discount_data.sizes:
+        for size_id in discount_data.sizes:
             size_discount = SizeToDiscount(
-                size=size,
+                sizeId=size_id,
                 discountId=discount.id
             )
             db.add(size_discount)
@@ -109,12 +109,14 @@ async def get_discount_response(db: AsyncSession, discount: Discount) -> Discoun
     )
     seasons = [season.value for season in season_result.scalars().all()]
 
-    # Получаем связанные размеры
+    # Получаем связанные размеры через ProductSize
+    from src.models import ProductSize
     size_result = await db.execute(
-        select(SizeToDiscount.size)
+        select(ProductSize)
+        .join(SizeToDiscount)
         .where(SizeToDiscount.discountId == discount.id)
     )
-    sizes = list(size_result.scalars().all())
+    sizes = [{"id": size.id, "value": size.value} for size in size_result.scalars().all()]
 
     return DiscountResponse(
         id=discount.id,

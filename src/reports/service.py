@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, desc
 from typing import List
-from src.models import Employee, Sale, ProductToSale, Product, ProductColor, ProductCategory, ShopRest
+from src.models import Employee, Sale, ProductToSale, Product, ProductColor, ProductCategory, ProductSize, ShopRest
 from src.reports.schemas import TopEmployeeResponse, TopProductResponse
 
 
@@ -73,14 +73,16 @@ class ReportsService:
                 Product,
                 ProductColor,
                 ProductCategory,
+                ProductSize,
                 ShopRest,
                 func.coalesce(func.sum(ProductToSale.count), 0).label('total_sold')
             )
             .outerjoin(ProductToSale, Product.id == ProductToSale.ProductId)
             .join(ProductColor, Product.colorId == ProductColor.id)
             .join(ProductCategory, Product.categoryId == ProductCategory.id)
+            .join(ProductSize, Product.sizeId == ProductSize.id)
             .outerjoin(ShopRest, Product.id == ShopRest.productId)
-            .group_by(Product.id, ProductColor.id, ProductCategory.id, ShopRest.id)
+            .group_by(Product.id, ProductColor.id, ProductCategory.id, ProductSize.id, ShopRest.id)
             .order_by(desc('total_sold'))
             .limit(limit)
         )
@@ -93,19 +95,20 @@ class ReportsService:
             product = row[0]
             color = row[1]
             category = row[2]
-            shop_rest = row[3]
-            total_sold = int(row[4])
+            size = row[3]
+            shop_rest = row[4]
+            total_sold = int(row[5])
 
             products.append(TopProductResponse(
                 id=product.id,
                 name=product.name,
-                size=product.size,
+                sizeValue=size.value if size else 0,
                 price=product.price,
                 season=product.season.value,
                 colorId=product.colorId,
                 categoryId=product.categoryId,
-                color={'id': color.id, 'name': color.name},
-                category={'id': category.id, 'name': category.name},
+                colorName=color.name,
+                categoryName=category.name,
                 total_sold=total_sold,
                 rest_count=shop_rest.restCount if shop_rest else 0
             ))

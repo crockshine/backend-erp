@@ -5,7 +5,7 @@ from datetime import datetime
 
 class CreateProductDto(BaseModel):
     name: str = Field(..., min_length=1, description="Название продукта")
-    size: int = Field(..., description="Размер")
+    sizeId: str = Field(..., description="ID размера")
     price: float = Field(default=0, description="Цена (устанавливается при закупке)")
     season: str = Field(..., description="Сезон (FALL, WINTER, SPRING, SUMMER)")
     colorId: str = Field(..., description="ID цвета")
@@ -14,7 +14,7 @@ class CreateProductDto(BaseModel):
 
 class UpdateProductDto(BaseModel):
     name: Optional[str] = None
-    size: Optional[int] = None
+    sizeId: Optional[str] = None
     price: Optional[float] = None
     season: Optional[str] = None
     colorId: Optional[str] = None
@@ -24,13 +24,14 @@ class UpdateProductDto(BaseModel):
 class ProductResponse(BaseModel):
     id: str
     name: str
-    size: int
+    sizeId: str
     price: float
     season: str
     colorId: str
     categoryId: str
     colorName: Optional[str] = None
     categoryName: Optional[str] = None
+    sizeValue: Optional[int] = None
     availableCount: Optional[int] = 0
 
     class Config:
@@ -40,7 +41,7 @@ class ProductResponse(BaseModel):
 class FilterOptionsResponse(BaseModel):
     categories: List[dict]
     colors: List[dict]
-    sizes: List[int]
+    sizes: List[dict]
     seasons: List[str]
 
 

@@ -22,7 +22,6 @@ class AuthService:
 
     @staticmethod
     async def login(db: AsyncSession, login_dto: LoginDto):
-        """Авторизация сотрудника"""
         result = await db.execute(
             select(Employee).where(Employee.email == login_dto.email)
         )

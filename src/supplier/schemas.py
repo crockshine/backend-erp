@@ -35,7 +35,7 @@ class OrderCreate(BaseModel):
 class OrderProductResponse(BaseModel):
     id: str
     name: str
-    size: int
+    sizeValue: int
     price: float  # Текущая цена продажи
     purchasePrice: float  # Цена закупки
     season: str

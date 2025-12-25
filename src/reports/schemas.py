@@ -20,13 +20,13 @@ class TopProductResponse(BaseModel):
     """Данные по самому продаваемому товару"""
     id: str
     name: str
-    size: int
+    sizeValue: int
     price: float
     season: str
     colorId: str
     categoryId: str
-    color: dict
-    category: dict
+    colorName: str
+    categoryName: str
     total_sold: int
     rest_count: int
 

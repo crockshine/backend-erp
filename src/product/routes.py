@@ -37,7 +37,7 @@ async def search_products(
     search: Optional[str] = Query(None, description="Поиск по названию"),
     category_ids: Optional[List[str]] = Query(None, description="Фильтр по категориям"),
     color_ids: Optional[List[str]] = Query(None, description="Фильтр по цветам"),
-    sizes: Optional[List[int]] = Query(None, description="Фильтр по размерам"),
+    size_ids: Optional[List[str]] = Query(None, description="Фильтр по размерам"),
     seasons: Optional[List[str]] = Query(None, description="Фильтр по сезонам"),
     offset: int = Query(0, ge=0, description="Смещение"),
     limit: int = Query(100, ge=1, le=1000, description="Лимит")
@@ -48,7 +48,7 @@ async def search_products(
     Возвращает продукты с информацией об остатках на складе
     """
     products = await ProductService.get_products_with_filters(
-        db, search, category_ids, color_ids, sizes, seasons, offset, limit
+        db, search, category_ids, color_ids, size_ids, seasons, offset, limit
     )
     return products
 
@@ -146,12 +146,12 @@ async def create_size(create_dto: CreateSizeDto, db: AsyncSession = Depends(get_
     return size
 
 
-@router.delete("/sizes/{size_value}", response_model=SizeResponse)
-async def delete_size(size_value: int, db: AsyncSession = Depends(get_db)):
+@router.delete("/sizes/{size_id}", response_model=SizeResponse)
+async def delete_size(size_id: str, db: AsyncSession = Depends(get_db)):
     """
     Удалить размер
     """
-    size = await ProductService.delete_size(db, size_value)
+    size = await ProductService.delete_size(db, size_id)
     return size
 
 

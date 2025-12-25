@@ -63,18 +63,22 @@ class ProductSize(Base):
     id = Column(String, primary_key=True, default=generate_uuid, unique=True)
     value = Column(Integer, nullable=False, unique=True)
 
+    products = relationship("Product", back_populates="size")
+    size_discounts = relationship("SizeToDiscount", back_populates="size")
+
 
 class Product(Base):
     __tablename__ = "Product"
 
     id = Column(String, primary_key=True, default=generate_uuid, unique=True)
     name = Column(String, nullable=False)
-    size = Column(Integer, nullable=False)
+    sizeId = Column(String, ForeignKey("ProductSize.id", ondelete="CASCADE"), nullable=False)
     price = Column(Float, nullable=False)
     season = Column(SQLEnum(Season, name='Season'), nullable=False)
     colorId = Column(String, ForeignKey("ProductColor.id", ondelete="CASCADE"), nullable=False)
     categoryId = Column(String, ForeignKey("ProductCategory.id", ondelete="CASCADE"), nullable=False)
 
+    size = relationship("ProductSize", back_populates="products")
     color = relationship("ProductColor", back_populates="products")
     category = relationship("ProductCategory", back_populates="products")
     shop_rest = relationship("ShopRest", back_populates="product", uselist=False, cascade="all, delete-orphan")
@@ -191,9 +195,10 @@ class SizeToDiscount(Base):
     __tablename__ = "SizeToDiscount"
 
     id = Column(String, primary_key=True, default=generate_uuid, unique=True)
-    size = Column(Integer, nullable=False)
+    sizeId = Column(String, ForeignKey("ProductSize.id", ondelete="CASCADE"), nullable=False)
     discountId = Column(String, ForeignKey("Discount.id", ondelete="CASCADE"), nullable=False)
 
+    size = relationship("ProductSize", back_populates="size_discounts")
     discount = relationship("Discount", back_populates="size_discounts")
 
 

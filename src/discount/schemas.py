@@ -9,7 +9,7 @@ class DiscountCreate(BaseModel):
     categories: Optional[List[str]] = None
     colors: Optional[List[str]] = None
     seasons: Optional[List[Season]] = None
-    sizes: Optional[List[int]] = None
+    sizes: Optional[List[str]] = None  # Теперь это ID размеров, а не значения
 
 
 class DiscountResponse(BaseModel):
@@ -19,7 +19,7 @@ class DiscountResponse(BaseModel):
     categories: List[str]
     colors: List[str]
     seasons: List[str]
-    sizes: List[int]
+    sizes: List[dict]  # Список объектов {id, value}
 
     class Config:
         from_attributes = True

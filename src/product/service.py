@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status
 from typing import Optional, List
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, distinct
+from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from src.models import (
     Product, ProductCategory, ProductColor, ProductSize, ShopRest,
@@ -56,8 +56,8 @@ class ProductService:
 
             # Если у скидки есть размеры, проверяем соответствие
             if applies and discount.size_discounts:
-                sizes = [sd.size for sd in discount.size_discounts]
-                if product.size not in sizes:
+                size_ids = [sd.sizeId for sd in discount.size_discounts]
+                if product.sizeId not in size_ids:
                     applies = False
 
             # Если скидка применима, добавляем процент
@@ -72,7 +72,7 @@ class ProductService:
         """Создать новый продукт"""
         product = Product(
             name=create_dto.name,
-            size=create_dto.size,
+            sizeId=create_dto.sizeId,
             price=create_dto.price,
             season=Season[create_dto.season],
             colorId=create_dto.colorId,
@@ -91,7 +91,7 @@ class ProductService:
         search: Optional[str] = None,
         category_ids: Optional[List[str]] = None,
         color_ids: Optional[List[str]] = None,
-        sizes: Optional[List[int]] = None,
+        size_ids: Optional[List[str]] = None,
         seasons: Optional[List[str]] = None,
         offset: int = 0,
         limit: int = 100
@@ -100,6 +100,7 @@ class ProductService:
         query = select(Product).options(
             selectinload(Product.color),
             selectinload(Product.category),
+            selectinload(Product.size),
             selectinload(Product.shop_rest)
         )
 
@@ -116,8 +117,8 @@ class ProductService:
             query = query.where(Product.colorId.in_(color_ids))
 
         # Фильтр по размерам
-        if sizes:
-            query = query.where(Product.size.in_(sizes))
+        if size_ids:
+            query = query.where(Product.sizeId.in_(size_ids))
 
         # Фильтр по сезонам
         if seasons:
@@ -145,7 +146,8 @@ class ProductService:
             product_dict = {
                 "id": product.id,
                 "name": product.name,
-                "size": product.size,
+                "sizeId": product.sizeId,
+                "sizeValue": product.size.value if product.size else None,
                 "price": round(final_price, 2),  # Цена со скидкой
                 "originalPrice": round(original_price, 2),  # Оригинальная цена
                 "discount": round(discount_percentage, 2),  # Процент скидки
@@ -176,12 +178,7 @@ class ProductService:
         # Получаем все размеры из таблицы ProductSize
         sizes_result = await db.execute(select(ProductSize))
         sizes_objects = sizes_result.scalars().all()
-        sizes = sorted([s.value for s in sizes_objects])
-
-        # Если таблица пустая, получаем размеры из Product
-        if not sizes:
-            distinct_sizes_result = await db.execute(select(distinct(Product.size)))
-            sizes = sorted([s for s in distinct_sizes_result.scalars().all()])
+        sizes_data = sorted([{"id": s.id, "value": s.value} for s in sizes_objects], key=lambda x: x["value"])
 
         # Получаем все сезоны
         seasons = [season.value for season in Season]
@@ -189,7 +186,7 @@ class ProductService:
         return {
             "categories": categories_data,
             "colors": colors_data,
-            "sizes": sizes,
+            "sizes": sizes_data,
             "seasons": seasons
         }
 
@@ -442,7 +439,6 @@ class ProductService:
         await db.commit()
         await db.refresh(color)
         return color
-        return color
 
     @staticmethod
     async def delete_color(db: AsyncSession, color_id: str):
@@ -493,10 +489,10 @@ class ProductService:
         return size
 
     @staticmethod
-    async def delete_size(db: AsyncSession, size_value: int):
+    async def delete_size(db: AsyncSession, size_id: str):
         """Удалить размер"""
         result = await db.execute(
-            select(ProductSize).where(ProductSize.value == size_value)
+            select(ProductSize).where(ProductSize.id == size_id)
         )
         size = result.scalar_one_or_none()
 
@@ -508,7 +504,7 @@ class ProductService:
 
         # Проверяем, есть ли продукты с этим размером
         products_with_size = await db.execute(
-            select(Product).where(Product.size == size_value)
+            select(Product).where(Product.sizeId == size_id)
         )
         products = products_with_size.scalars().all()
 
@@ -530,7 +526,8 @@ class ProductService:
         query = select(Sale).options(
             selectinload(Sale.employee),
             selectinload(Sale.product_sales).selectinload(ProductToSale.product).selectinload(Product.color),
-            selectinload(Sale.product_sales).selectinload(ProductToSale.product).selectinload(Product.category)
+            selectinload(Sale.product_sales).selectinload(ProductToSale.product).selectinload(Product.category),
+            selectinload(Sale.product_sales).selectinload(ProductToSale.product).selectinload(Product.size)
         ).order_by(Sale.createdAt.desc()).offset(offset).limit(limit)
 
         result = await db.execute(query)
@@ -555,7 +552,7 @@ class ProductService:
                 product_info = {
                     "id": product.id,
                     "name": product.name,
-                    "size": product.size,
+                    "sizeValue": product.size.value if product.size else None,
                     "price": product.price,
                     "count": product_sale.count,
                     "colorName": product.color.name if product.color else None,

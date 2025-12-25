@@ -137,7 +137,8 @@ class SupplierService:
             .options(
                 joinedload(OrderToSupplier.supplier),
                 joinedload(OrderToSupplier.product).joinedload(Product.color),
-                joinedload(OrderToSupplier.product).joinedload(Product.category)
+                joinedload(OrderToSupplier.product).joinedload(Product.category),
+                joinedload(OrderToSupplier.product).joinedload(Product.size)
             )
         )
 
@@ -166,12 +167,12 @@ class SupplierService:
             orders_by_group[group_key]["products"].append({
                 "id": product.id,
                 "name": product.name,
-                "size": product.size,
+                "sizeValue": product.size.value if product.size else None,
                 "price": product.price,  # Текущая цена продажи
                 "purchasePrice": order.purchasePrice,  # Цена закупки
                 "season": product.season.value,
-                "colorName": product.color.name,
-                "categoryName": product.category.name,
+                "colorName": product.color.name if product.color else None,
+                "categoryName": product.category.name if product.category else None,
                 "count": order.count
             })
 

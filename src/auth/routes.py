@@ -29,8 +29,6 @@ async def login(login_dto: LoginDto, db: AsyncSession = Depends(get_db)):
 @router.post("/create-employee", response_model=EmployeeResponse, status_code=status.HTTP_201_CREATED)
 async def create_employee(create_dto: CreateEmployeeDto, db: AsyncSession = Depends(get_db)):
     """
-    Создать нового сотрудника (только для ADMIN)
-
     - **role**: Роль (ADMIN или SELLER)
     - **name**: Имя
     - **lastname**: Фамилия
